@@ -13,13 +13,13 @@ for satIndex = 1:3
     Pc_class = 'Pc3';
     Missions = {'SWARM'; []; []; []};
     Satellites = {satName{satIndex}; []; []; []};
-    Filetype = {'MAG_LR'; []; []; []};
+    Filetype = {'MAG_LR_PPRO'; []; []; []};
     Field_choice = {'F'; []; []; []};
     Component = [4;4;4;4];
     Latitude = [-90, 90];
 
-    date_vec = (datenum(2015, 2, 19) : 1 : datenum(2015, 3, 10))';
-    outpath = ['G:\PROCESSED\SWARM\ASM_newPLP\', Pc_class, '\Swarm-', satName{satIndex}, '\'];
+    date_vec = (datenum(2013, 11, 26) : 1 : datenum(2015, 2, 28))';
+    outpath = ['G:\PROCESSED\SWARM\ASM_newPLP_newMAG\', Pc_class, '\Swarm-', satName{satIndex}, '\'];
     
     for i = 1:length(date_vec)
         

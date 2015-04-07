@@ -120,11 +120,20 @@ for i=1:nPanels
     xGEO = eqn_coordinateTransform(data(:,end), X, meta.SDL_X_COORD, 'xGEO',...
         meta.SDL_VAR_UNITS{meta.SDL_X_INDEX+2});
     rMAG = eqn_coordinateTransform(data(:,end), xGEO, 'xGEO', 'rMAG');
-    if isempty(rMAG)
-        rGEO = eqn_coordinateTransform(data(:,end), xGEO, 'xGEO', 'rGEO');
-        R = [rGEO(:,1), xGEO, data(:,end)];
-    else
-        R = [rMAG(:,1), xGEO, data(:,end)];
+    if procFlag
+        if isempty(rMAG)
+            rGEO = eqn_coordinateTransform(data(:,end), xGEO, 'xGEO', 'rGEO');
+            R = [rGEO(:,1), xGEO, data(:,end)];
+        else
+            R = [rMAG(:,1), xGEO, data(:,end)];
+        end
+    else % if(no proc) give the original coordinates not the transformed ones
+        if isempty(rMAG)
+            rGEO = eqn_coordinateTransform(data(:,end), xGEO, 'xGEO', 'rGEO');
+            R = [rGEO(:,1), X, data(:,end)];
+        else
+            R = [rMAG(:,1), X, data(:,end)];
+        end
     end
     clear data X xGEO rMAG;
     
