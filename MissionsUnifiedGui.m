@@ -48,7 +48,7 @@ end
 function MissionsUnifiedGui_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.output = hObject;
 clc
-set(handles.figure1,'Name',['SwarmGui_unified v1.3   COPYLEFT',char(169),'2014 SiAv -- ALL RIGHTS RESERVED']);
+set(handles.figure1,'Name',['SwarmGui_unified v1.4   COPYLEFT',char(169),'2014 SiAv -- ALL RIGHTS RESERVED']);
 % Update handles structure
 
 % Add to path the dir for the "Magnetar_Unified" library
@@ -58,7 +58,7 @@ addpath(local_path);
 clear global
 % handles.output = hObject;
 global Full_date Pc_class miscells Latitude Remote_data mis_access_dat Params procFlag alignFlag
-Pc_class = 'Pc34';
+Pc_class = 'Pc34-16';
 Latitude = [-60,60];
 Remote_data = cell(3,1);
 miscells =  Mission_cells;
@@ -343,12 +343,15 @@ str = get(hObject, 'String');
 val = get(hObject,'Value');
 pc_choice = str{val}; % take the choice of month made as a string
 switch pc_choice;
-    case 'Pc 3-4', Pc_class = 'Pc34';
-    case 'Pc 4-5', Pc_class = 'Pc45';
-    case 'Pc 3-5', Pc_class = 'Pc35';
+    case 'Pc 3-4 (16 mHz)', Pc_class = 'Pc34-16';
+    case 'Pc 3-4 (10 mHz)', Pc_class = 'Pc34-10';
+    case 'Pc 3-4 (5 mHz)', Pc_class = 'Pc34-5';
+    case 'Pc 3-4 (20 mHz)', Pc_class = 'Pc34-20';
+    case 'Pc 3 (20mHz)', Pc_class = 'Pc3';
+    case 'Pc 4-5 (1 mHz)', Pc_class = 'Pc45';
+    case 'Pc 3-5 (1 mHz)', Pc_class = 'Pc35';
 end
 guidata(hObject,handles);
-
 
 
 function Sender_Callback(hObject, eventdata, handles)

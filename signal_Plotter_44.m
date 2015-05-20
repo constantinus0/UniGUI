@@ -392,6 +392,8 @@ plotter(h);
             else % logarithmicallyspaced freqs
                 frequencies = log2(frequencies);
                 freqTicks = (log2(1/1000):1:log2(65536/1000))'; % convert frequencies in power of 2 and use as number for ticks
+                freqTicks = [freqTicks; frequencies(1); frequencies(end)]; %#ok<AGROW>
+                freqTicks = sort(freqTicks, 1, 'ascend');
                 freqTickLabels = 1000*(2.^freqTicks); % but use ticklabels as actual frequencies (for readability)
             end
 			%%% plot bottom row of axes

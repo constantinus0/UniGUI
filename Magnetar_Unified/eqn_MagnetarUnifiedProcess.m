@@ -11,8 +11,17 @@ if nargin < 10; procFlag = 1; end
 % -------------------------------------------------------------------------
 
 switch Pc_class
-    case 'Pc34'
+    case 'Pc34-16'
         CUTOFF = 16/1000; % in Hz
+        FREQS = 2.^linspace(log2(10/1000), log2(100/1000), 50); % in
+    case 'Pc34-10'
+        CUTOFF = 10/1000; % in Hz
+        FREQS = 2.^linspace(log2(10/1000), log2(100/1000), 50); % in
+    case 'Pc34-5'
+        CUTOFF = 5/1000; % in Hz
+        FREQS = 2.^linspace(log2(10/1000), log2(100/1000), 50); % in
+    case 'Pc34-20'
+        CUTOFF = 20/1000; % in Hz
         FREQS = 2.^linspace(log2(10/1000), log2(100/1000), 50); % in
     case 'Pc45'
         CUTOFF = 1/1000; % in Hz
@@ -139,9 +148,8 @@ for i=1:nPanels
     
     % Extract PLP data (if available)
     if strcmp(Mission, 'SWARM')
-        % set FILETYPE to 'EFI_LP' for new txt PLP data or 'EFI_PL' for old cdfs
-        [plpData, plpMeta] = eqn_UniversalSpaceDataLoader(Mission, ...
-            DateRange, Satellites{i}, 'EFI_LP', 'n', Source); %#ok<NASGU>        
+        [plpData, plpMeta] = eqn_UniversalSpaceDataLoader_Swarm_v2(...
+        DateRange, Satellites{i}, 'EFI_PL', 'n', Source);
         d = [plpData(:,1), plpData(:,end)];
     elseif strcmp(Mission, 'CHAMP')
         [plpData, plpMeta] = eqn_UniversalSpaceDataLoader(Mission, ...

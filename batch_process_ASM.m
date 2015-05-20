@@ -18,8 +18,8 @@ for satIndex = 1:3
     Component = [4;4;4;4];
     Latitude = [-90, 90];
 
-    date_vec = (datenum(2013, 11, 26) : 1 : datenum(2015, 2, 28))';
-    outpath = ['G:\PROCESSED\SWARM\ASM_newPLP_newMAG\', Pc_class, '\Swarm-', satName{satIndex}, '\'];
+    date_vec = (datenum(2014, 5, 1) : 1 : datenum(2015, 5, 1))';
+    outpath = ['G:\PROCESSED\SWARM\ASM_PPRO\', Pc_class, '\Swarm-', satName{satIndex}, '\'];
     
     for i = 1:length(date_vec)
         
@@ -49,7 +49,7 @@ for satIndex = 1:3
                         '.mat'], 'Magnetar');
             end
         
-            clear 'Magnetar';
+            %clear 'Magnetar';
         end
 
     end

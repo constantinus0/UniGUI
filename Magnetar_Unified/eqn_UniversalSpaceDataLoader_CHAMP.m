@@ -48,16 +48,16 @@ switch FIELD_CHOICE
     case 'B_FGM'
         VARS = {'VEC', 'GEO_LAT', 'GEO_LON', 'GEO_ALT', 'EPOCH'};
         DIMS = [ 3;         1;        1;          1;        1];
-        SDL_VAR_NAMES = {'B^{FGM}', 'Latitude', 'Longitude', 'Radius', 'Time'};
-        SDL_VAR_UNITS = {'nT',        'deg',        'deg',     'km',  'matlabd'};
+        SDL_VAR_NAMES = {'B^{FGM}_1', 'B^{FGM}_2', 'B^{FGM}_3','Latitude', 'Longitude', 'Radius', 'Time'};
+        SDL_VAR_UNITS = {'nT','nT','nT','deg',        'deg',     'km',  'matlabd'};
         SDL_F_COORD = 'INSTR';
         SDL_X_COORD = 'rGEO';
         SDL_X_INDEX = 4; % Begining Index of Positional data
     case 'B_NEC'
         VARS = {'VEC', 'GEO_LAT', 'GEO_LON', 'GEO_ALT', 'EPOCH'};
         DIMS = [ 3;         1;        1;          1;        1];
-        SDL_VAR_NAMES = {'B^{NEC}', 'Latitude', 'Longitude', 'Radius', 'Time'};
-        SDL_VAR_UNITS = {'nT',        'deg',        'deg',     'km',  'matlabd'};
+        SDL_VAR_NAMES = {'B^{NEC}_N', 'B^{NEC}_E', 'B^{NEC}_C', 'Latitude', 'Longitude', 'Radius', 'Time'};
+        SDL_VAR_UNITS = {'nT','nT','nT','deg',        'deg',     'km',  'matlabd'};
         SDL_F_COORD = 'NEC';
         SDL_X_COORD = 'rGEO';
         SDL_X_INDEX = 4; % Begining Index of Positional data
@@ -211,7 +211,7 @@ for i=1:nDays-1
             FILETYPE, '\', ...
             dateStrings(i, 1:4), '\', ...
             filename];
-        
+        disp(localpathname);
         [TF, fullname] = eqn_fileExists(localpathname, 100);
         if TF % if file exists
             disp('    File found!');
@@ -224,10 +224,12 @@ for i=1:nDays-1
                     dateStrings(i, 1:4), '\', ...
                     filename0];
                 [TF, fullname] = eqn_fileExists(localpathname0, 100);
+                
                 if TF % if file exists
                     disp('    File found!');
                     FILE_FOUND_FLAG = 1;
                     filenameList{i} = fullname;
+                    disp(localpathname0);
                 else
                     disp('    No file found on the local PATH!');
                 end

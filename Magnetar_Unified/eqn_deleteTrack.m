@@ -1,7 +1,7 @@
 function Magnetar = eqn_deleteTrack(Magnetar, Track_No, columnId)
 %eqn_deleteTrack Deletes Track of a Magnetar structure
 % 
-%   Magnetar = eqn_deleteTrack(Magnetar, columnId, Track_No)
+%   Magnetar = eqn_deleteTrack(Magnetar, Track_No, columnId)
 %   erases the track that corresponds to 'Track_No', e.g. for Track_No = 1
 %   it will completely remove the first track, for Track_No = 2, the second
 %   track and so on. The 'columnId' indicates from which column (as
