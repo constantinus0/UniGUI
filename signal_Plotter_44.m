@@ -1,6 +1,6 @@
 function h = signal_Plotter_44(Magnetar)
 
-namestring = ['Signal Plotter v1    COPYLEFT',char(169),'2013 SAGiamini -- ALL RIGHTS RESERVED'];
+namestring = ['Signal Plotter v1.5    COPYLEFT',char(169),'2013 SAGiamini -- ALL RIGHTS RESERVED'];
 
 h.fig = findall(0, 'Name', namestring);
 
@@ -194,8 +194,8 @@ plotter(h);
     end
 
     function save_figure_signal(hObject,eventdata,h)
-        time_name_loc(1) = Magnetar.B{1,1}(track_b_ind(1),2); % take date from the time column of B (in MATLAB format)
-        time_name_loc(2) = Magnetar.B{1,1}(track_b_ind(2),2); % to use in filename save for beginning and end time
+        time_name_loc(1) = Magnetar.B{1,1}(track_b_ind(1),end); % take date from the time column of B (in MATLAB format)
+        time_name_loc(2) = Magnetar.B{1,1}(track_b_ind(2),end); % to use in filename save for beginning and end time
         name =  ['SWARM-', datestr(time_name_loc(1), 'yyyy_mm_dd__HH_MM'),...
                     '___',datestr(time_name_loc(2), 'yyyy_mm_dd__HH_MM')];
         [path_name_output, type_index] = path_name_maker(name);
@@ -352,12 +352,12 @@ plotter(h);
             Bsignal = Magnetar.B{index_inside_magn,1}(track_b_ind(1):track_b_ind(2),1);
             Bsignal(abs(Bsignal)<1e-10) = 0;
             Wsignal = Magnetar.W{index_inside_magn,1}(:,track_b_ind(1):track_b_ind(2));
-            Rsignal = Magnetar.R{index_inside_magn,1}(track_r_ind(1):track_r_ind(2),1);
-            if size(Magnetar.R{index_inside_magn,1},2) == 5
-                Xsignal = Magnetar.R{index_inside_magn,1}(track_r_ind(1):track_r_ind(2),2:4);
-            else
-                Xsignal = [];
-            end
+            % structure of Magnetar.R is [rGEO rMAG xGEO Time]
+            Geolat_signal = Magnetar.R{index_inside_magn,1}(track_r_ind(1):track_r_ind(2),1); % GEO Latitude
+            Geolon_signal = Magnetar.R{index_inside_magn,1}(track_r_ind(1):track_r_ind(2),2); % GEO Longitude
+            MagLat_signal = Magnetar.R{index_inside_magn,1}(track_r_ind(1):track_r_ind(2),4); % MAG Latitude
+            Xsignal = Magnetar.R{index_inside_magn,1}(track_r_ind(1):track_r_ind(2),7:9); % GEO XYZ
+            
             columnLabel = Magnetar.label{index_inside_magn,1};
             
             % NaNs = sum(isnan(Bsignal));
@@ -381,6 +381,7 @@ plotter(h);
             end
 
  			frequencies = Magnetar.Freq{index_inside_magn,1};
+            freq_ceil = ceil(log2(max(frequencies)));
             nTimeTicks = [11, 8, 5, 4];
             timeTicks = linspace(time(1),time(end),nTimeTicks(round(axes_len/3)))';
             timeTickLabels = datestr(timeTicks, 'HH:MM');
@@ -391,14 +392,16 @@ plotter(h);
                 freqTickLabels = 1000*(freqTicks); % for linear freqs
             else % logarithmicallyspaced freqs
                 frequencies = log2(frequencies);
-                freqTicks = (log2(1/1000):1:log2(65536/1000))'; % convert frequencies in power of 2 and use as number for ticks
+                freqTicks = (log2(1/1000):1:freq_ceil)'; % convert frequencies in power of 2 and use as number for ticks
                 freqTicks = [freqTicks; frequencies(1); frequencies(end)]; %#ok<AGROW>
                 freqTicks = sort(freqTicks, 1, 'ascend');
                 freqTickLabels = 1000*(2.^freqTicks); % but use ticklabels as actual frequencies (for readability)
             end
 			%%% plot bottom row of axes
-      
-            [axh, h1, h2] = plotyy(Lat_time,Rsignal,Ionic_time,dsignal,'Parent',h.axes(i_local));         
+            if all(isnan(MagLat_signal));  lat_plot = Geolat_signal;
+            else lat_plot = MagLat_signal; end;
+            
+            [axh, h1, h2] = plotyy(Lat_time,lat_plot,Ionic_time,dsignal,'Parent',h.axes(i_local));         
             set(h1, 'color', 'blue','Linewidth',2);
             set(h2, 'color', [0 0.5 0],'Linewidth',2); % greenish color
 			
@@ -414,13 +417,13 @@ plotter(h);
             
             if i_local == 1; % bottom row leftmost axes needs a label and a xlabel (UT:)           
                 yh1 = get(axh(1),'ylabel');
-                if isempty(Xsignal); ax_lab = 'Latitude'; else ax_lab = 'Mag.Lat.'; end
+                if all(isnan(MagLat_signal)); ax_lab = 'Latitude'; else ax_lab = 'Mag.Lat.'; end
                 set(yh1,'String',[ax_lab,' (degrees)'],'Units','normalized', 'position',[-label_multiplier, 0.5],'FontWeight','bold');
 %                 set(axh(1),'Units','normalized');
 %                 axh1_pos = get(axh(1),'position');
 %                 text_inGUI(axh(1),axh1_pos(1)-0.04,axh1_pos(2)-0.01,'UT:','HorizontalAlignment','Center','FontWeight','bold');
-                yh1 = get(axh(1),'xlabel');
-                set(yh1,'String','UT:','Units','normalized', 'position',[-0.8*label_multiplier, -0.025],...
+                xh1 = get(axh(1),'xlabel');
+                set(xh1,'String','UT:','Units','normalized', 'position',[-0.8*label_multiplier, -0.025],...
                     'HorizontalAlignment','Right','FontWeight','bold');
             end
             if i_local == axes_len-2 % bottom row righttmost axes needs a label
@@ -434,24 +437,42 @@ plotter(h);
 				 
 			set(axh(1), 'ygrid', 'on', 'xgrid','on' );
             set(axh,{'ycolor'},{'k';[0 0.5 0]});
+            
+            [dts, inds] = min(abs(bsxfun(@minus,timeTicks,Lat_time')),[],2);
+            xh1_pos = get(xh1,'Position');
+            
+            if i_local == 1
+                GeoLon_txt = text(xh1_pos(1), xh1_pos(2)-0.08,...
+                    'Long.:','Parent',axh(1),'HorizontalAlignment','Right','VerticalAlignment','top','FontWeight','bold','Units','normalized');
+            end
+            set(GeoLon_txt, 'Units','data'); geolon_txt_pos = get(GeoLon_txt,'Position');
+            text(timeTicks,(geolon_txt_pos(2))*ones(length(timeTicks),1),num2str(Geolon_signal(inds), '%.2f'),...
+                'Parent',axh(1),'HorizontalAlignment','Center','VerticalAlignment','top','Units','data');
 			
             % bottom line of MLT values
             if ~isempty(Xsignal)
-                [dts, inds] = min(abs(bsxfun(@minus,timeTicks,Lat_time')),[],2);
 %                 inds(dts > 60/86400) = NaN;
                 MLT = eqn_coordinateTransform(timeTicks,Xsignal(inds,:),'xGEO','MLT');
+%                For moofiko MLT:
+%                MLT = hour(timeTicks) + minute(timeTicks)/60;
                 MLT(dts > 60/86400) = NaN;                
                 if ~isempty(MLT)
     %                 set(yh1,'Units','normalized');
     %                 tr2 = get(yh1,'position');
-                    text(timeTicks,(min(y1tick)-4*extra_limit1)*ones(length(timeTicks),1),eqn_dec2hr(MLT),...
-                        'Parent',axh(1),'HorizontalAlignment','Center');
+%                     text(timeTicks,(min(y1tick)-4*extra_limit1)*ones(length(timeTicks),1),eqn_dec2hr(MLT),...
+%                         'Parent',axh(1),'HorizontalAlignment','Center');
+                    
                     if i_local == 1
-                        text(-0.8*label_multiplier, -0.13,...
-                            'MLT:','Parent',axh(1),'HorizontalAlignment','Right','Units','normalized','FontWeight','bold');
+                        MLT_txt = text(xh1_pos(1), xh1_pos(2)-0.16,...
+                            'MLT:','Parent',axh(1),'HorizontalAlignment','Right','VerticalAlignment','top','FontWeight','bold','Units','normalized');
                     end
+                    set(MLT_txt, 'Units','data'); mlt_txt_pos = get(MLT_txt,'Position');
+                    text(timeTicks,(mlt_txt_pos(2))*ones(length(timeTicks),1),eqn_dec2hr(MLT),...
+                        'Parent',axh(1),'HorizontalAlignment','Center','VerticalAlignment','top','Units','data');
                 end
             end
+            
+            
            
             
             %%% plot middle row of axes
@@ -463,7 +484,12 @@ plotter(h);
                 pow_multi = 1/100;
                 bar_label = 'log_2((mV/m)^2/Hz)';
             end
-            imagesc(time,frequencies,log2(pow_multi*Wsignal),[-2,4]); % 
+            clims = [-2, 4];
+            if 2^min(frequencies) > 100/1000
+                clims = [-8, -4]; 
+            end
+            h_isc = imagesc(time,frequencies,log2(pow_multi*Wsignal), clims); %
+%            set(h_isc, 'AlphaData', ~isnan(Wsignal));
             set(h.axes(i_local+1),'ydir','normal', 'xtick', timeTicks, 'ytick', freqTicks, ...
                 'xticklabel', [], 'yticklabel', freqTickLabels);
             if i_local == 1; % middle row leftmost axes needs a label

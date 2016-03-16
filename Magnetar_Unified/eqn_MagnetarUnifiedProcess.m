@@ -29,12 +29,16 @@ switch Pc_class
     case 'Pc35'
         CUTOFF = 1/1000; % in Hz
         FREQS = 2.^linspace(log2(1/1000), log2(100/1000), 50); % in Hz  
+        
+    case 'Pc1'
+        CUTOFF = 1200/1000; % in Hz ( 0 => no filtering)
+        FREQS = 2.^linspace(log2(1000/1000), log2(5000/1000), 50); % in Hz 
     case 'Pc2'
         CUTOFF = 100/1000; % in Hz ( 0 => no filtering)
         FREQS = 2.^linspace(log2(100/1000), log2(200/1000), 50); % in Hz 
     case 'Pc3'
         CUTOFF = 20/1000; % in Hz ( 0 => no filtering)
-        FREQS = 2.^linspace(log2(20/1000), log2(100/1000), 50); % in Hz 
+        FREQS = 2.^linspace(log2(20/1000), log2(100/1000), 50); % in Hz         
 end
 
 nPanels = sum(~cellfun(@isempty, Missions));
@@ -124,26 +128,18 @@ for i=1:nPanels
         Magnetar.dind{i} = nan(nTracks,2);
     else
     
-    % Extract Positional Data and transform to the appopriate coordinates
+    % Extract Positional Data and transform to the appropriate coordinates
     X = data(:, meta.SDL_X_INDEX:meta.SDL_X_INDEX+2);
     xGEO = eqn_coordinateTransform(data(:,end), X, meta.SDL_X_COORD, 'xGEO',...
         meta.SDL_VAR_UNITS{meta.SDL_X_INDEX+2});
     rMAG = eqn_coordinateTransform(data(:,end), xGEO, 'xGEO', 'rMAG');
-    if procFlag
-        if isempty(rMAG)
-            rGEO = eqn_coordinateTransform(data(:,end), xGEO, 'xGEO', 'rGEO');
-            R = [rGEO(:,1), xGEO, data(:,end)];
-        else
-            R = [rMAG(:,1), xGEO, data(:,end)];
-        end
-    else % if(no proc) give the original coordinates not the transformed ones
-        if isempty(rMAG)
-            rGEO = eqn_coordinateTransform(data(:,end), xGEO, 'xGEO', 'rGEO');
-            R = [rGEO(:,1), X, data(:,end)];
-        else
-            R = [rMAG(:,1), X, data(:,end)];
-        end
+    rGEO = eqn_coordinateTransform(data(:,end), xGEO, 'xGEO', 'rGEO');
+    if isempty(rMAG)
+        R = [rGEO(:,1:3), nan(size(xGEO, 1), 3), xGEO, data(:,end)];
+    else
+        R = [rGEO(:,1:3), rMAG(:,1:3), xGEO, data(:,end)];
     end
+
     clear data X xGEO rMAG;
     
     % Extract PLP data (if available)
@@ -158,6 +154,7 @@ for i=1:nPanels
     else
         d = [];
     end
+%    d = [];
     
     % Begining Processing -------------------------------------------------
     
@@ -188,7 +185,7 @@ for i=1:nPanels
     end
     
     % zero pad
-    Fpfix = [Ffix; zeros(ceil(2*MARGIN*84600/SAMPLING_TIME),1)];
+    Fpfix = [Ffix; zeros(ceil(2*MARGIN*86400/SAMPLING_TIME),1)];
     
     % make sure Length is even
     if mod(length(Fpfix),2) ~= 0; Fpfix(end) = []; end; 
@@ -248,8 +245,13 @@ for i=1:nPanels
 
     else
         % Track By Track Analysis
-            % interpolate Mag. Lat.
-            iMagLat = eqn_interpolateNaN(Magnetar.R{i}(:,1));
+            % get Mag. Lat (or GEO latitude, if IRBEM was not found)
+            if all(isnan(Magnetar.R{i}(:,4)))
+                latIndex = 1;
+            else
+                latIndex = 4;
+            end
+            iMagLat = eqn_interpolateNaN(Magnetar.R{i}(:, latIndex));
 
             % find local max/min and set to extreme values, so that the process
             % will always cut the Tracks at those points

@@ -52,7 +52,7 @@ set(handles.figure1,'Name',['SwarmGui_unified v1.4   COPYLEFT',char(169),'2014 S
 % Update handles structure
 
 % Add to path the dir for the "Magnetar_Unified" library
-local_path = [pwd '\Magnetar_Unified'];
+local_path = [pwd, filesep, 'Magnetar_Unified'];
 addpath(local_path);
 
 clear global
@@ -350,6 +350,8 @@ switch pc_choice;
     case 'Pc 3 (20mHz)', Pc_class = 'Pc3';
     case 'Pc 4-5 (1 mHz)', Pc_class = 'Pc45';
     case 'Pc 3-5 (1 mHz)', Pc_class = 'Pc35';
+    case 'Pc 1', Pc_class = 'Pc1';
+    case 'Pc 2', Pc_class = 'Pc2';
 end
 guidata(hObject,handles);
 

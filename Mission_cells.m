@@ -12,7 +12,7 @@ SWARMcell = cell(4,3);
 
 SWARMcell{1,1} = {'A';'B';'C'};
     SWARMcell{1,2} = {'MAG_LR'}; SWARMcell{1,3}  = {'F';'B_VFM';'B_NEC'};
-    SWARMcell{2,2} = {'MAG_HR'}; SWARMcell{2,3}  = {'F';'B_VFM';'B_NEC'};
+    SWARMcell{2,2} = {'MAG_HR'}; SWARMcell{2,3}  = {'B_VFM';'B_NEC'};
     SWARMcell{3,2} = {'MAG_CA'}; SWARMcell{3,3}  = {'F';'B_VFM';};                            
     SWARMcell{4,2} = {'EFI_PL'}; SWARMcell{4,3}  = {'E_NEC';'n'};
     SWARMcell{5,2} = {'EFI_TII'}; SWARMcell{5,3}  = {'E'};

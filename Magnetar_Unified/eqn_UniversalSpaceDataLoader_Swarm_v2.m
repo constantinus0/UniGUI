@@ -44,21 +44,24 @@ switch FILETYPE
         RECORD = 'MDR_MAG_LR';
         SAMPLING_TIME = 1;
         CLASS = 'OPER';
-        FOLDER = 'Previous';
+        FOLDER = 'Current';
     case 'MAG_LR_PPRO'
         TYPE = 'MAGX_LR_1B';
         RECORD = 'MDR_MAG_LR';
         SAMPLING_TIME = 1;
         CLASS = 'PPRO';
         FOLDER = 'Current';        
-%     case 'MAG_HR'
-%         TYPE = 'MAGX_HR_1B';
-%         RECORD = 'MDR_MAG_HR';
-%         SAMPLING_TIME = 1/50;
-%     case 'MAG_CA'
-%         TYPE = 'MAGX_CA_1B';
-%         RECORD = 'MDR_MAG_CA';
-%         SAMPLING_TIME = 1;
+    case 'MAG_HR'
+        TYPE = 'MAGX_HR_1B';
+        RECORD = 'MDR_MAG_HR';
+        SAMPLING_TIME = 1/50;
+        CLASS = 'OPER';
+        FOLDER = 'Current';
+    case 'MAG_CA'
+        TYPE = 'MAGX_CA_1B';
+        RECORD = 'MDR_MAG_CA';
+        SAMPLING_TIME = 1;
+        FOLDER = 'Current';
     case 'EFI_PL'
         TYPE = 'EFIX_PL_1B';
         RECORD = 'MDR_EFI_PL';
@@ -173,10 +176,10 @@ end
 % Path to the dir for final, unzipped data files.
 TEMP = DATA_SOURCE{1};
 if ~isempty(TEMP)
-    if TEMP(end) ~= '\'; TEMP = [TEMP, '\']; end;
+    if TEMP(end) ~= filesep; TEMP = [TEMP, filesep]; end;
     DELETE_TEMP = false;
 else
-    TEMP = 'temp\';
+    TEMP = ['temp', filesep];
     DELETE_TEMP = true;
 end
 
@@ -184,10 +187,10 @@ end
 % containing the "Swarm_L1B_CDF_ORBATT_MAGNET ..." directory.
 PATH = DATA_SOURCE{2};
 if ~isempty(PATH)
-    if PATH(end) ~= '\'; PATH = [PATH, '\']; end;
+    if PATH(end) ~= filesep; PATH = [PATH, filesep]; end;
     DELETE_PATH = false;
 else
-    PATH = 'tempPath\';
+    PATH = ['tempPath', filesep];
     DELETE_PATH = true;
 end
 
@@ -256,6 +259,12 @@ for i=1:nDays
         zipname = [name, '.CDF.ZIP'];
     end
     
+    if (strcmp(FILETYPE, 'MAG_HR') || strcmp(FILETYPE, 'EFI_PL'))
+        if dateList(i) < datenum(2015, 7, 16)
+            FOLDER = 'Previous';
+        end
+    end
+    
     FILE_FOUND_FLAG = 0;
     
     % look for the file in the temporary directory
@@ -281,10 +290,10 @@ for i=1:nDays
         disp('Seeking file in local PATH');
         
         [TF, fullname] = eqn_fileExists([PATH, ...
-            'Level1b\', ...
-            FOLDER, '\',...
-            [TYPE(1:end-3), '\'],...
-            ['Sat_', SATELLITE, '\'],...
+            'Level1b', filesep, ...
+            FOLDER, filesep, ...
+            [TYPE(1:end-3), filesep], ...
+            ['Sat_', SATELLITE, filesep], ...
             zipname], 100);
         
         if TF % if file exists
@@ -295,13 +304,17 @@ for i=1:nDays
             
             % unzip contents to TEMP
             if strcmpi(fullname(end-2:end), 'zip')
-                unzip(fullname, TEMP);
+                try
+                    unzip(fullname, TEMP);
+                catch noZipError %#ok<NASGU>
+                    break;
+                end
             else
                 copyfile(fullname, TEMP, 'f')
             end
             
             % get the actualfilename
-            out = regexp(fullname, '\\(\w+)', 'tokens');
+            out = regexp(fullname, '[/\\](\w+)', 'tokens');
             if ~isempty(out)
                 actualfilename = [TEMP, out{end}{1}, '_', RECORD, '.cdf'];
                 
@@ -326,13 +339,17 @@ for i=1:nDays
     if ~FILE_FOUND_FLAG && ~isempty(SERVER)
         disp('Requesting file from server');
         if ~exist('ftpObj', 'var')
-            ftpObj = ftp(SERVER, USER, PASS);
+            try
+                ftpObj = ftp(SERVER, USER, PASS);
+            catch noServerError %#ok<NASGU>
+                break;
+            end
         end
           
-        target_name = ['Level1b\', ...
-            FOLDER, '\',...
-            [strrep(TYPE(1:end-3), 'X', 'x'), '\'],...
-            ['Sat_', SATELLITE, '\'],...
+        target_name = ['Level1b', filesep, ...
+            FOLDER, filesep, ...
+            [strrep(TYPE(1:end-3), 'X', 'x'), filesep], ...
+            ['Sat_', SATELLITE, filesep], ...
             zipname];
         disp(target_name);
         [TF, fullname] = eqn_ftpFileExists(ftpObj, ...
@@ -354,7 +371,7 @@ for i=1:nDays
             if PATH(2) == ':' % begins with c: so is absolute path
                 % nothing
             else
-                corrPath = [pwd, '\'];
+                corrPath = [pwd, filesep];
             end
             
             % download zip file from server

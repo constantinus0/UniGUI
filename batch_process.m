@@ -5,20 +5,24 @@ Params = eqn_paramLoader('config.txt');
 
 % source input through the config.txt file
 
+%%
 satName = {'A', 'B', 'C'};
 
-for satIndex = 1:3
-    
+for satIndex = 1:3    
     Pc_class = 'Pc3';
     Missions = {'SWARM'; []; []; []};
     Satellites = {satName{satIndex}; []; []; []};
-    Filetype = {'EFI_TII'; []; []; []};
-    Field_choice = {'E'; []; []; []};
-    Component = [7;7;7;7];
+    Filetype = {'MAG_LR'; []; []; []};
+    Field_choice = {'B_VFM'; []; []; []};
+    Component = [7;0;0;0];
     Latitude = [-90, 90];
 
-    date_vec = (datenum(2014, 5, 15) : 1 : datenum(2014, 12, 30))';
-    outpath = ['G:\PROCESSED\SWARM\TII\', Pc_class, '\Swarm-', satName{satIndex}, '\'];
+    date_vec = (datenum(2014, 5, 15) : 1 : datenum(2016, 1, 15))';
+    outpath = ['G:\PROCESSED\SWARM\VFM_OPER\', Pc_class, '\Swarm-', satName{satIndex}, '\'];
+    
+    if ~exist(outpath, 'dir')
+        mkdir(outpath);
+    end
     
     for i = 1:length(date_vec)
         
@@ -39,34 +43,36 @@ for satIndex = 1:3
             % An "empty" Magnetar may have size > 1 kB, but it can be
             % recognized by the fact that the 'R' variable inside will have only
             % two columns and not 5 as is normally the case!
-            if (s > 1000) && (size(Magnetar.R{1}, 2) == 5)
+            % EDIT 2016: No of R vars have changed to 10 now! xGEO is R(:,7:9) not R(:,2:4)!
+            if (s > 1000) && (size(Magnetar.R{1}, 2) >= 5)
                     t = Magnetar.R{1}(:,end);
-                    xGEO = Magnetar.R{1}(:, 2:4);
+                    xGEO = Magnetar.R{1}(:, 7:9);
                     MLT = eqn_coordinateTransform(t, xGEO, 'xGEO', 'MLT');
                     Magnetar.MLT{1} = [MLT, t];
-                    save([outpath, 'SWARM-', satName{satIndex}, '_TII_', Pc_class, '_', datestr(ti, 'yyyy-mm-dd'),...
+                    save([outpath, 'SWARM-', satName{satIndex}, '_B-Total_', Pc_class, '_', datestr(ti, 'yyyy-mm-dd'),...
                         '.mat'], 'Magnetar');
             end
         
-            clear 'Magnetar';
         end
-
+        
+        clear 'Magnetar';
     end
 end
 
 %%
 % 
-% outpath = 'G:\PROCESSED\SWARM\ASM\Swarm-AC Tracks 90MagLat\';
+% outpath = 'G:\PROCESSED\SWARM\ASM_newPLP\Swarm-BAC Tracks 90MagLat\';
 % 
 % Pc_class = 'Pc34';
-% Missions = {'SWARM'; 'SWARM'; []; []};
-% Satellites = {'A'; 'C'; []; []};
-% Filetype = {'MAG_LR'; 'MAG_LR'; []; []};
-% Field_choice = {'F'; 'F'; []; []};
+% Missions = {'SWARM'; 'SWARM'; 'SWARM'; []};
+% Satellites = {'B'; 'A'; 'C'; []};
+% Filetype = {'MAG_LR'; 'MAG_LR'; 'MAG_LR'; []};
+% Field_choice = {'F'; 'F'; 'F'; []};
 % Component = [4;4;4;4];
 % Latitude = [-90, 90];
 % 
-% date_vec = (datenum(2014, 11, 16) : 1 : datenum(2015, 1, 15))';
+% date_vec = (datenum(2013, 12, 9) : 1 : datenum(2015, 1, 12))';
+% % date_vec = (datenum(2014, 3, 4) : 1 : datenum(2015, 1, 12))';
 % 
 % for i = 1:length(date_vec)
 %     
@@ -85,7 +91,7 @@ end
 %     
 %     Magnetar = eqn_MagnetarUnifiedProcess(Missions, Satellites, ...
 %             Filetype, Field_choice, Component, Full_date, Pc_class, Latitude, Params);
-%         
+%     Magnetar = eqn_alignMagnetar(Magnetar);
 %     h = signal_Plotter_44(Magnetar);
 %     
 %     c = get(h.trackbytrack_button, 'callback');
